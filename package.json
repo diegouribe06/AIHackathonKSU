@@ -1,4 +1,17 @@
 {
+  "name": "aihackothonksu",
+  "displayName": "AI Hackathon KSU",
+  "description": "Your extension description",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {},
   "dependencies": {
     "generator-code": "^1.11.14",
     "yo": "^6.0.0"
