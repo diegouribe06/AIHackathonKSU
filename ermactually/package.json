@@ -4,7 +4,7 @@
   "description": "Automated Security Bot",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.106.1"
+    "vscode": "^1.106.0"
   },
   "categories": [
     "Other"
@@ -14,10 +14,27 @@
   "contributes": {
     "commands": [
       {
-        "command": "ermactually.helloWorld",
-        "title": "Hello World"
+        "command": "ermactually.ErmActually",
+        "title": "ErmActually"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id":"ErmContainer",
+          "title":"Erm View",
+          "icon": "resources/media/hampterIcon.svg"
+        }
+      ]
+    },
+    "views": {
+      "ErmContainer": [
+        {
+          "id": "ErmView",
+          "name": "Erm View"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
