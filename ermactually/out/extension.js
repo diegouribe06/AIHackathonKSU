@@ -38,9 +38,12 @@ exports.deactivate = deactivate;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
+const MainSidebarViewProvider_1 = require("./MainSidebarViewProvider");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
+    const mainSidebarViewProvider = new MainSidebarViewProvider_1.MainSidebarViewProvider(context.extensionUri);
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider(MainSidebarViewProvider_1.MainSidebarViewProvider.viewType, mainSidebarViewProvider));
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "ermactually" is now active!');
