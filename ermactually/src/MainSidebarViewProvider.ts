@@ -45,10 +45,46 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Erm View</title>
         </head>
-        <body>
-            <h1>Hello World from ErmActually!</h1>
-            <button id="processCodeButton">Process Active File</button>
-            <pre id="output"></pre>
+        <body style="margin: 0; padding: 16px; font-family: var(--vscode-font-family); color: var(--vscode-foreground); background-color: var(--vscode-editor-background);">
+            <!-- Commit Status Section -->
+            <div style="margin-bottom: 20px;">
+                <h2 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">Commit Status:</h2>
+                <div style="padding: 8px; background-color: var(--vscode-input-background); border-radius: 4px; font-size: 12px;">
+                    <span style="color: var(--vscode-textLink-foreground);">✓ Ready to commit</span>
+                </div>
+            </div>
+
+            <!-- Image Placeholder -->
+            <div style="margin-bottom: 20px; text-align: center;">
+                <div style="width: 100%; height: 150px; background-color: var(--vscode-input-background); border: 1px dashed var(--vscode-input-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--vscode-descriptionForeground); font-size: 12px;">
+                    Image Placeholder
+                </div>
+            </div>
+
+            <!-- Vulnerabilities Section -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">Vulnerabilities</h3>
+                <div style="padding: 12px; background-color: var(--vscode-input-background); border-radius: 4px; min-height: 60px;">
+                    <p style="margin: 0; font-size: 12px; color: var(--vscode-descriptionForeground);">There is no current issues</p>
+                </div>
+            </div>
+
+            <!-- Warnings Section -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">Warnings</h3>
+                <div style="padding: 12px; background-color: var(--vscode-input-background); border-radius: 4px; min-height: 60px;">
+                    <p style="margin: 0; font-size: 12px; color: var(--vscode-descriptionForeground);">There are no current warnings</p>
+                </div>
+            </div>
+
+            <!-- Bottom Action Buttons -->
+            <div style="display: flex; justify-content: space-between; margin-top: auto; padding-top: 16px; border-top: 1px solid var(--vscode-input-border);">
+                <button id="runButton" style="flex: 1; margin-right: 8px; padding: 8px 16px; background-color: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">Run</button>
+                <button id="settingsButton" style="padding: 8px 12px; background-color: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); border: none; border-radius: 4px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center;">
+                    ⚙️
+                </button>
+            </div>
+
             <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
         </html>`;
