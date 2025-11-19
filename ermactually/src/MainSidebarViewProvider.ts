@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import OpenAI from 'openai';
 
 export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'ermactually.mainSidebarView';
