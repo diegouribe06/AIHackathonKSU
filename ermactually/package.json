@@ -9,13 +9,19 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+  ],
+
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "ermactually.ErmActually",
         "title": "ErmActually"
+      },
+      {
+        "command": "ermactually.setApiKey",
+        "title": "Set OpenAI API Key"
       }
     ],
     "viewsContainers": {
@@ -23,19 +29,21 @@
         {
           "id":"ErmContainer",
           "title":"Erm View",
-          "icon": "resources/media/hampterIcon.svg"
+          "icon": "media/hampterIcon.svg"
         }
       ]
     },
     "views": {
       "ErmContainer": [
         {
-          "id": "ErmView",
-          "name": "Erm View"
+          "id": "ermactually.mainSidebarView",
+          "name": "Erm View",
+          "type": "webview"
         }
       ]
     }
   },
+  
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",

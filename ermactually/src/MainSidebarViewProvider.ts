@@ -1,0 +1,128 @@
+import * as vscode from 'vscode';
+import { OpenAI } from 'openai';
+
+type Prompt = {
+    initPrompt: string;
+    code: string;
+};
+
+export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
+    public static readonly viewType = 'ermactually.mainSidebarView';
+
+    private _view?: vscode.WebviewView;
+
+    constructor(
+        private readonly _context: vscode.ExtensionContext,
+        private readonly _extensionUri: vscode.Uri
+    ) {}
+
+    /** ----------------------------
+     *  SECRET STORAGE + OPENAI CLIENT
+     *  ---------------------------- */
+    private async getOpenAIClient(): Promise<OpenAI | undefined> {
+        const apiKey = await this._context.secrets.get('openaiApiKey');
+
+        if (!apiKey) {
+            vscode.window.showErrorMessage(
+                "OpenAI API Key not set. Run: 'ErmActually: Set OpenAI API Key'"
+            );
+            return undefined;
+        }
+
+        return new OpenAI({ apiKey });
+    }
+
+    /** ----------------------------
+     *  PROCESS ACTIVE FILE
+     *  ---------------------------- */
+    private async processActiveFile(): Promise<string> {
+
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return "No active editor";
+        }
+
+        const document = editor.document;
+
+        const client = await this.getOpenAIClient();
+        if (!client) {
+            return "Missing API key.";
+        }
+
+        const prompt: Prompt = {
+            initPrompt: "Analyze the following code and provide insights:",
+            code: document.getText()
+        };
+
+        try {
+            const response = await client.responses.create({
+                model: "gpt-4o",
+                input: prompt.initPrompt + "\n\n" + prompt.code
+            });
+
+            return response.output_text;
+        } catch (err) {
+            console.error(err);
+            return "Error contacting OpenAI: " + String(err);
+        }
+    }
+
+    /** ----------------------------
+     *  WEBVIEW SETUP
+     *  ---------------------------- */
+    resolveWebviewView(
+        webviewView: vscode.WebviewView,
+        context: vscode.WebviewViewResolveContext,
+        _token: vscode.CancellationToken
+    ) {
+        this._view = webviewView;
+
+        webviewView.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [vscode.Uri.joinPath(this._extensionUri, 'media')]
+        };
+
+        webviewView.webview.html = this.getHtml(webviewView.webview);
+
+        webviewView.webview.onDidReceiveMessage(async (message) => {
+            if (message.type === "processCode") {
+                const result = await this.processActiveFile();
+                webviewView.webview.postMessage({ type: "processedResult", result });
+            }
+        });
+    }
+
+    /** ----------------------------
+     *  HTML
+     *  ---------------------------- */
+    private getHtml(webview: vscode.Webview) {
+        const scriptUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, "media", "main.js")
+        );
+        const nonce = this.getNonce();
+
+        return /*html*/`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="Content-Security-Policy"
+                  content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; img-src ${webview.cspSource}; connect-src https://api.openai.com;">
+        </head>
+        <body>
+            <h2>ErmActually</h2>
+            <button id="processCodeButton">Process Active File</button>
+            <pre id="output"></pre>
+
+            <script nonce="${nonce}" src="${scriptUri}"></script>
+        </body>
+        </html>`;
+    }
+
+    private getNonce() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        return Array.from({ length: 32 }, () =>
+            chars[Math.floor(Math.random() * chars.length)]
+        ).join('');
+    }
+}
