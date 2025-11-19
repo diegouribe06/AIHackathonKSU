@@ -35,13 +35,59 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MainSidebarViewProvider = void 0;
 const vscode = __importStar(require("vscode"));
+const openai_1 = require("openai");
 class MainSidebarViewProvider {
+    _context;
     _extensionUri;
     static viewType = 'ermactually.mainSidebarView';
     _view;
-    constructor(_extensionUri) {
+    constructor(_context, _extensionUri) {
+        this._context = _context;
         this._extensionUri = _extensionUri;
     }
+    /** ----------------------------
+     *  SECRET STORAGE + OPENAI CLIENT
+     *  ---------------------------- */
+    async getOpenAIClient() {
+        const apiKey = await this._context.secrets.get('openaiApiKey');
+        if (!apiKey) {
+            vscode.window.showErrorMessage("OpenAI API Key not set. Run: 'ErmActually: Set OpenAI API Key'");
+            return undefined;
+        }
+        return new openai_1.OpenAI({ apiKey });
+    }
+    /** ----------------------------
+     *  PROCESS ACTIVE FILE
+     *  ---------------------------- */
+    async processActiveFile() {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return "No active editor";
+        }
+        const document = editor.document;
+        const client = await this.getOpenAIClient();
+        if (!client) {
+            return "Missing API key.";
+        }
+        const prompt = {
+            initPrompt: "Analyze the following code and provide insights:",
+            code: document.getText()
+        };
+        try {
+            const response = await client.responses.create({
+                model: "gpt-4o",
+                input: prompt.initPrompt + "\n\n" + prompt.code
+            });
+            return response.output_text;
+        }
+        catch (err) {
+            console.error(err);
+            return "Error contacting OpenAI: " + String(err);
+        }
+    }
+    /** ----------------------------
+     *  WEBVIEW SETUP
+     *  ---------------------------- */
     resolveWebviewView(webviewView, context, _token) {
         this._view = webviewView;
         webviewView.webview.options = {
@@ -52,25 +98,29 @@ class MainSidebarViewProvider {
         webviewView.webview.onDidReceiveMessage(async (message) => {
             if (message.type === "processCode") {
                 const result = await this.processActiveFile();
-                webviewView.webview.postMessage({ type: 'processedResult', result });
+                webviewView.webview.postMessage({ type: "processedResult", result });
             }
         });
     }
+    /** ----------------------------
+     *  HTML
+     *  ---------------------------- */
     getHtml(webview) {
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "main.js"));
         const nonce = this.getNonce();
-        return /* html */ `<!DOCTYPE html>
-        <html lang="en">
+        return /*html*/ `
+        <!DOCTYPE html>
+        <html>
         <head>
             <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; img-src ${webview.cspSource};">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Erm View</title>
+            <meta http-equiv="Content-Security-Policy"
+                  content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; img-src ${webview.cspSource}; connect-src https://api.openai.com;">
         </head>
         <body>
-            <h1>Hello World from ErmActually!</h1>
+            <h2>ErmActually</h2>
             <button id="processCodeButton">Process Active File</button>
             <pre id="output"></pre>
+
             <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
         </html>`;
@@ -78,17 +128,6 @@ class MainSidebarViewProvider {
     getNonce() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         return Array.from({ length: 32 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    }
-    async processActiveFile() {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            return 'No active editor found.';
-        }
-        const document = editor.document;
-        const code = document.getText();
-        // Placeholder for actual code processing logic
-        const processedCode = `Processed code length: ${code.length} characters.`;
-        return processedCode;
     }
 }
 exports.MainSidebarViewProvider = MainSidebarViewProvider;

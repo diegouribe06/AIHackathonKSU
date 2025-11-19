@@ -18,6 +18,10 @@
       {
         "command": "ermactually.ErmActually",
         "title": "ErmActually"
+      },
+      {
+        "command": "ermactually.setApiKey",
+        "title": "Set OpenAI API Key"
       }
     ],
     "viewsContainers": {

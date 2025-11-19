@@ -42,8 +42,20 @@ const MainSidebarViewProvider_1 = require("./MainSidebarViewProvider");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
-    const mainSidebarViewProvider = new MainSidebarViewProvider_1.MainSidebarViewProvider(context.extensionUri);
+    const mainSidebarViewProvider = new MainSidebarViewProvider_1.MainSidebarViewProvider(context, context.extensionUri);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(MainSidebarViewProvider_1.MainSidebarViewProvider.viewType, mainSidebarViewProvider));
+    const setApiKey = vscode.commands.registerCommand('ermactually.setApiKey', async () => {
+        const apiKey = await vscode.window.showInputBox({
+            prompt: 'Enter your OpenAI API Key',
+            ignoreFocusOut: true,
+            password: true
+        });
+        if (apiKey) {
+            await context.secrets.store('openaiApiKey', apiKey);
+            vscode.window.showInformationMessage('OpenAI API Key saved successfully!');
+        }
+    });
+    context.subscriptions.push(setApiKey);
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "ermactually" is now active!');
