@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { OpenAI } from 'openai';
+import { Agent } from './PromptWrapper';
 
 type Prompt = {
     initPrompt: string;
@@ -12,60 +13,60 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
 
     constructor(
-        private readonly _context: vscode.ExtensionContext,
+        private agent: Agent,
         private readonly _extensionUri: vscode.Uri
     ) {}
 
     /** ----------------------------
      *  SECRET STORAGE + OPENAI CLIENT
      *  ---------------------------- */
-    private async getOpenAIClient(): Promise<OpenAI | undefined> {
-        const apiKey = await this._context.secrets.get('openaiApiKey');
+    // private async getOpenAIClient(): Promise<OpenAI | undefined> {
+    //     const apiKey = await this._context.secrets.get('openaiApiKey');
 
-        if (!apiKey) {
-            vscode.window.showErrorMessage(
-                "OpenAI API Key not set. Run: 'ErmActually: Set OpenAI API Key'"
-            );
-            return undefined;
-        }
+    //     if (!apiKey) {
+    //         vscode.window.showErrorMessage(
+    //             "OpenAI API Key not set. Run: 'ErmActually: Set OpenAI API Key'"
+    //         );
+    //         return undefined;
+    //     }
 
-        return new OpenAI({ apiKey });
-    }
+    //     return new OpenAI({ apiKey });
+    // }
 
-    /** ----------------------------
-     *  PROCESS ACTIVE FILE
-     *  ---------------------------- */
-    private async processActiveFile(): Promise<string> {
+    // /** ----------------------------
+    //  *  PROCESS ACTIVE FILE
+    //  *  ---------------------------- */
+    // private async processActiveFile(): Promise<string> {
 
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            return "No active editor";
-        }
+    //     const editor = vscode.window.activeTextEditor;
+    //     if (!editor) {
+    //         return "No active editor";
+    //     }
 
-        const document = editor.document;
+    //     const document = editor.document;
 
-        const client = await this.getOpenAIClient();
-        if (!client) {
-            return "Missing API key.";
-        }
+    //     const client = await this.getOpenAIClient();
+    //     if (!client) {
+    //         return "Missing API key.";
+    //     }
 
-        const prompt: Prompt = {
-            initPrompt: "Analyze the following code and provide insights:",
-            code: document.getText()
-        };
+    //     const prompt: Prompt = {
+    //         initPrompt: "Analyze the following code and provide insights:",
+    //         code: document.getText()
+    //     };
 
-        try {
-            const response = await client.responses.create({
-                model: "gpt-4o",
-                input: prompt.initPrompt + "\n\n" + prompt.code
-            });
+    //     try {
+    //         const response = await client.responses.create({
+    //             model: "gpt-4o",
+    //             input: prompt.initPrompt + "\n\n" + prompt.code
+    //         });
 
-            return response.output_text;
-        } catch (err) {
-            console.error(err);
-            return "Error contacting OpenAI: " + String(err);
-        }
-    }
+    //         return response.output_text;
+    //     } catch (err) {
+    //         console.error(err);
+    //         return "Error contacting OpenAI: " + String(err);
+    //     }
+    // }
 
     /** ----------------------------
      *  WEBVIEW SETUP
@@ -86,7 +87,7 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.onDidReceiveMessage(async (message) => {
             if (message.type === "processCode") {
-                const result = await this.processActiveFile();
+                const result = await this.agent.processActiveFile();
                 webviewView.webview.postMessage({ type: "processedResult", result });
             }
         });

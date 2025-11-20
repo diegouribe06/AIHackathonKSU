@@ -39,10 +39,12 @@ exports.deactivate = deactivate;
 // Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
 const MainSidebarViewProvider_1 = require("./MainSidebarViewProvider");
+const PromptWrapper_1 = require("./PromptWrapper");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
-    const mainSidebarViewProvider = new MainSidebarViewProvider_1.MainSidebarViewProvider(context, context.extensionUri);
+    const agent = new PromptWrapper_1.Agent(context);
+    const mainSidebarViewProvider = new MainSidebarViewProvider_1.MainSidebarViewProvider(agent, context.extensionUri);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(MainSidebarViewProvider_1.MainSidebarViewProvider.viewType, mainSidebarViewProvider));
     const setApiKey = vscode.commands.registerCommand('ermactually.setApiKey', async () => {
         const apiKey = await vscode.window.showInputBox({
