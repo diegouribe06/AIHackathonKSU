@@ -46,6 +46,45 @@ function activate(context) {
     const agent = new PromptWrapper_1.Agent(context);
     const mainSidebarViewProvider = new MainSidebarViewProvider_1.MainSidebarViewProvider(agent, context.extensionUri);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(MainSidebarViewProvider_1.MainSidebarViewProvider.viewType, mainSidebarViewProvider));
+    //Character counting and paste monitoring
+    let charSinceLastRun = 0;
+    // Matches ONLY whitespace and newlines
+    const onlyWhitespaceOrNewline = /^[\s\n\r]*$/;
+    vscode.workspace.onDidChangeTextDocument((event) => {
+        const active = vscode.window.activeTextEditor;
+        if (!active || event.document !== active.document)
+            return;
+        for (const change of event.contentChanges) {
+            const inserted = change.text;
+            // --- ENTER / TAB DETECTION — SKIP THESE ---
+            const noRealTextInserted = inserted.length === 0 || onlyWhitespaceOrNewline.test(inserted);
+            const onlyNewlinesOrSpaces = onlyWhitespaceOrNewline.test(inserted);
+            const textWasDeleted = change.rangeLength > 0;
+            if (onlyNewlinesOrSpaces && !(!onlyNewlinesOrSpaces && textWasDeleted)) {
+                // Skip pure whitespace/newline insertions (ENTER/TAB)
+                continue;
+            }
+            // --- PASTE DETECTION ---
+            // Multi-character text OR any text containing newline(s)
+            const isPaste = inserted.length > 1 ||
+                inserted.includes("\n") ||
+                inserted.includes("\r");
+            if (isPaste) {
+                vscode.window.showInformationMessage("Detected paste, running analysis...");
+                mainSidebarViewProvider.triggerBackgroundAnalysis();
+                charSinceLastRun = 0;
+                continue;
+            }
+            // --- NORMAL TYPING COUNT ---
+            charSinceLastRun += inserted.length;
+            if (charSinceLastRun >= 100) {
+                vscode.window.showInformationMessage("Detected significant typing, running analysis...");
+                mainSidebarViewProvider.triggerBackgroundAnalysis();
+                charSinceLastRun = 0;
+            }
+        }
+    });
+    //api key setting command
     const setApiKey = vscode.commands.registerCommand('ermactually.setApiKey', async () => {
         const apiKey = await vscode.window.showInputBox({
             prompt: 'Enter your OpenAI API Key',
