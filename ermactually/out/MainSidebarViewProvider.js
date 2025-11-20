@@ -100,6 +100,10 @@ class MainSidebarViewProvider {
                 const result = await this.processActiveFile();
                 webviewView.webview.postMessage({ type: "processedResult", result });
             }
+            else if (message.type === "openSettings") {
+                // Open settings panel
+                vscode.commands.executeCommand('ermactually.openSettings');
+            }
         });
     }
     /** ----------------------------
@@ -114,15 +118,6 @@ class MainSidebarViewProvider {
         <html>
         <head>
             <meta charset="UTF-8">
-<<<<<<< HEAD
-            <meta http-equiv="Content-Security-Policy"
-                  content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; img-src ${webview.cspSource}; connect-src https://api.openai.com;">
-        </head>
-        <body>
-            <h2>ErmActually</h2>
-            <button id="processCodeButton">Process Active File</button>
-            <pre id="output"></pre>
-=======
             <meta http-equiv="Content-Security-Policy" 
                 content="
                     default-src 'none'; 
@@ -228,7 +223,6 @@ class MainSidebarViewProvider {
                     </div>
                 </div>
             </div>
->>>>>>> 1084220d2d101bea0b1c24ed85c115eb2d163525
 
             <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>

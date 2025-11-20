@@ -22,7 +22,16 @@
       {
         "command": "ermactually.setApiKey",
         "title": "Set OpenAI API Key"
+      },
+      
+      
+      {
+        "command": "ermactually.openSettings",
+        "title": "Open Settings",
+        "icon": "$(settings-gear)"
       }
+    
+    
     ],
     "viewsContainers": {
       "activitybar": [
