@@ -42,7 +42,13 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
         
         webviewView.webview.onDidReceiveMessage(async (message) => {
             if (message.type === "processCode") {
+                // Update status to "Working"
+                webviewView.webview.postMessage({ type: "statusUpdate", status: "⚡ Processing..." });
+                
                 const result = await this.agent.processActiveFile();
+                
+                // Update status to "Complete!" when done
+                webviewView.webview.postMessage({ type: "statusUpdate", status: "✓ Completed!" });
                 webviewView.webview.postMessage({ type: "processedResult", result });
             } else if (message.type === "openSettings") {
                 // Open settings panel
@@ -84,8 +90,9 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
             <div class="commit-status-section">
                 <h2 class="commit-status-title">Commit Status:</h2>
                 <div class="commit-status-box">
-                    <span class="commit-status-text">✓ Waiting</span>
+                    <span class="commit-status-text">⏳ Waiting...</span>
                 </div>
+                <p class="instruction-text">Put your API key in and select Run to get started.</p>
             </div>
 
             <!-- Image Placeholder -->
@@ -98,20 +105,28 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
             <!-- Vulnerabilities Section -->
             <div class="vulnerabilities-section">
                 <h3 class="vulnerabilities-title">Vulnerabilities</h3>
+                
+                <!-- throw the extra class back in there to work -->
+                
                 <div class="vulnerabilities-box">
                     <div class="vulnerability-category">
-                        <h4 class="vulnerability-category-title">Most Important Vulnerabilities</h4>
-                        <div id="importantVulnContainer" class="vulnerability-list"></div>
+                        <h4 class="vulnerability-category-title">Critical Vulnerability</h4>
+                        <div id="criticalVulnContainer" class="vulnerability-list"></div>
                     </div>
 
                     <div class="vulnerability-category">
-                        <h4 class="vulnerability-category-title">Warning Vulnerabilities</h4>
-                        <div id="warningVulnContainer" class="vulnerability-list"></div>
+                        <h4 class="vulnerability-category-title">High Vulnerability</h4>
+                        <div id="highVulnContainer" class="vulnerability-list"></div>
                     </div>
 
                     <div class="vulnerability-category">
-                        <h4 class="vulnerability-category-title">Not a Vulnerability</h4>
-                        <div id="safeVulnContainer" class="vulnerability-list"></div>
+                        <h4 class="vulnerability-category-title">Medium Vulnerability</h4>
+                        <div id="mediumVulnContainer" class="vulnerability-list"></div>
+                    </div>
+
+                    <div class="vulnerability-category">
+                        <h4 class="vulnerability-category-title">Low Vulnerability</h4>
+                        <div id="lowVulnContainer" class="vulnerability-list"></div>
                     </div>
                 </div>
             </div>

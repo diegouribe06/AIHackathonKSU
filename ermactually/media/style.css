@@ -28,6 +28,14 @@ body {
     color: var(--vscode-textLink-foreground);
 }
 
+.instruction-text {
+    margin: 8px 0 0 0;
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    font-style: italic;
+    text-align: center;
+}
+
 /* Image Placeholder */
 .image-placeholder-container {
     margin-bottom: 20px;
@@ -97,6 +105,91 @@ body {
 
 .vulnerability-safe {
     color: #90ee90; /* Green - default for not a vulnerability */
+}
+
+/* Issue Item Styles */
+.issue-item {
+    margin-bottom: 12px;
+    padding: 10px;
+    border-radius: 4px;
+    border-left: 3px solid;
+}
+
+.issue-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.issue-type {
+    font-size: 13px;
+}
+
+.issue-severity {
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.issue-lines {
+    font-size: 11px;
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+.issue-description {
+    font-size: 12px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.issue-reco {
+    font-size: 11px;
+    opacity: 0.9;
+    padding-top: 4px;
+    border-top: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+/* Severity-based Colors */
+.severity-critical {
+    color: #ff4500; /* Reddish orange */
+    border-left-color: #ff4500;
+}
+
+.severity-critical .issue-severity {
+    color: #ff4500;
+}
+
+.severity-high {
+    color: #ff8c00; /* Orange */
+    border-left-color: #ff8c00;
+}
+
+.severity-high .issue-severity {
+    color: #ff8c00;
+}
+
+.severity-medium {
+    color: #ffd700; /* Yellow */
+    border-left-color: #ffd700;
+}
+
+.severity-medium .issue-severity {
+    color: #ffd700;
+}
+
+.severity-low {
+    color: #32cd32; /* Green */
+    border-left-color: #32cd32;
+}
+
+.severity-low .issue-severity {
+    color: #32cd32;
+}
+
+.vulnerability-list {
+    padding-left: 8px;
 }
 
 .vulnerability-empty {
