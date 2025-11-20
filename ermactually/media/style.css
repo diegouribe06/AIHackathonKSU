@@ -343,4 +343,42 @@ body {
     display: block;
 }
 
+/* Settings Panel Container */
+.settings-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.settings-header {
+    margin: 0 0 24px 0;
+    font-size: 20px;
+    font-weight: 600;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--vscode-input-border);
+}
+
+.settings-actions {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--vscode-input-border);
+}
+
+.settings-save-button {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.settings-save-button:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
 

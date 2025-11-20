@@ -95,11 +95,14 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
         };
 
         webviewView.webview.html = this.getHtml(webviewView.webview);
-
+        
         webviewView.webview.onDidReceiveMessage(async (message) => {
             if (message.type === "processCode") {
                 const result = await this.processActiveFile();
                 webviewView.webview.postMessage({ type: "processedResult", result });
+            } else if (message.type === "openSettings") {
+                // Open settings panel
+                vscode.commands.executeCommand('ermactually.openSettings');
             }
         });
     }

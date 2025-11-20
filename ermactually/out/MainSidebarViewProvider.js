@@ -102,6 +102,10 @@ class MainSidebarViewProvider {
                 const result = await this.processActiveFile();
                 webviewView.webview.postMessage({ type: "processedResult", result });
             }
+            else if (message.type === "openSettings") {
+                // Open settings panel
+                vscode.commands.executeCommand('ermactually.openSettings');
+            }
         });
     }
     /** ----------------------------

@@ -24,31 +24,12 @@
 
 
     function init() {
-        // Settings popup functionality
+        // Settings button - opens settings panel
         const settingsButton = document.getElementById('settingsButton');
-        const settingsPopup = document.getElementById('settingsPopup');
-        const settingsOverlay = document.getElementById('settingsOverlay');
-        const settingsClose = document.getElementById('settingsClose');
-
-        if (settingsButton && settingsPopup && settingsOverlay) {
+        if (settingsButton) {
             settingsButton.addEventListener('click', () => {
-                settingsPopup.classList.add('show');
-                settingsOverlay.classList.add('show');
+                vscode.postMessage({ type: 'openSettings' });
             });
-
-            if (settingsClose) {
-                settingsClose.addEventListener('click', () => {
-                    settingsPopup.classList.remove('show');
-                    settingsOverlay.classList.remove('show');
-                });
-            }
-
-            if (settingsOverlay) {
-                settingsOverlay.addEventListener('click', () => {
-                    settingsPopup.classList.remove('show');
-                    settingsOverlay.classList.remove('show');
-                });
-            }
         }
 
         // Run button (placeholder - functionality to be added later)
