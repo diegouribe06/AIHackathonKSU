@@ -2,19 +2,6 @@ import * as vscode from 'vscode';
 import { OpenAI } from 'openai';
 import { Agent } from './PromptWrapper';
 
-type Prompt = {
-    initPrompt: string;
-    code: string;
-};
-
-type Answer = {
-    line_numbers: string | number | number[],
-    issue_type: "string",
-    severity: "low" | "medium" | "high" | "critical",
-    description: string,
-    recommendation: string
-}
-
 
 export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'ermactually.mainSidebarView';
