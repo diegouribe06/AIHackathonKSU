@@ -42,6 +42,7 @@ export class Agent {
         const client = this.openai;
         if (!client) return [];
 
+        //prompt was updated
         const prompt: Prompt = {
             initPrompt: `
     You are a real-time security auditor. Periodically check the programmer's newly added or modified code. 
