@@ -1,0 +1,346 @@
+body {
+    margin: 0;
+    padding: 16px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-foreground);
+    background-color: var(--vscode-editor-background);
+}
+
+/* Commit Status Section */
+.commit-status-section {
+    margin-bottom: 20px;
+}
+
+.commit-status-title {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.commit-status-box {
+    padding: 8px;
+    background-color: var(--vscode-input-background);
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.commit-status-text {
+    color: var(--vscode-textLink-foreground);
+}
+
+/* Image Placeholder */
+.image-placeholder-container {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.image-placeholder {
+    width: 100%;
+    height: 150px;
+    background-color: var(--vscode-input-background);
+    border: 1px dashed var(--vscode-input-border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vscode-descriptionForeground);
+    font-size: 12px;
+}
+
+/* Vulnerabilities Section */
+.vulnerabilities-section {
+    margin-bottom: 20px;
+}
+
+.vulnerabilities-title {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.vulnerabilities-box {
+    padding: 12px;
+    background-color: var(--vscode-input-background);
+    border-radius: 4px;
+    min-height: 60px;
+}
+
+.vulnerability-category {
+    margin-bottom: 16px;
+}
+
+.vulnerability-category:last-child {
+    margin-bottom: 0;
+}
+
+.vulnerability-category-title {
+    font-size: 11px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--vscode-input-border);
+}
+
+.vulnerability-category-content {
+    font-size: 12px;
+    margin: 0;
+    padding-left: 8px;
+}
+
+.vulnerability-important {
+    color: #ff8c00; /* Orange - default for most important */
+}
+
+.vulnerability-warning {
+    color: #ffd700; /* Yellow - default for warnings */
+}
+
+.vulnerability-safe {
+    color: #90ee90; /* Green - default for not a vulnerability */
+}
+
+.vulnerability-empty {
+    color: var(--vscode-descriptionForeground);
+}
+
+/* Warnings Section */
+.warnings-section {
+    margin-bottom: 20px;
+}
+
+.warnings-title {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.warnings-box {
+    padding: 12px;
+    background-color: var(--vscode-input-background);
+    border-radius: 4px;
+    min-height: 60px;
+}
+
+.warnings-empty {
+    margin: 0;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+
+/* Bottom Action Buttons */
+.bottom-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--vscode-input-border);
+}
+
+#runButton {
+    flex: 1;
+    margin-right: 8px;
+    padding: 8px 16px;
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+#settingsButton {
+    padding: 8px 12px;
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Settings Popup */
+.settings-popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 8px;
+    padding: 20px;
+    min-width: 300px;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+.settings-popup.show {
+    display: block;
+}
+
+.settings-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--vscode-input-border);
+}
+
+.settings-popup-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.settings-popup-close {
+    background: none;
+    border: none;
+    color: var(--vscode-foreground);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-section {
+    margin-bottom: 20px;
+}
+
+.settings-section:last-child {
+    margin-bottom: 0;
+}
+
+.settings-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.settings-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 8px;
+    background-color: var(--vscode-input-background);
+    border-radius: 4px;
+}
+
+.settings-option:last-child {
+    margin-bottom: 0;
+}
+
+.settings-option-label {
+    font-size: 12px;
+    flex: 1;
+}
+
+.settings-toggle {
+    width: 40px;
+    height: 20px;
+    background-color: var(--vscode-input-border);
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+}
+
+.settings-toggle.active {
+    background-color: var(--vscode-button-background);
+}
+
+.settings-toggle-slider {
+    width: 16px;
+    height: 16px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s;
+}
+
+.settings-toggle.active .settings-toggle-slider {
+    transform: translateX(20px);
+}
+
+.settings-text-size-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-text-size-button {
+    width: 28px;
+    height: 28px;
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-text-size-display {
+    min-width: 30px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-picker {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: transparent;
+    padding: 0;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 3px;
+}
+
+/* Overlay for popup */
+.settings-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+}
+
+.settings-overlay.show {
+    display: block;
+}
+
+
