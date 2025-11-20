@@ -63,7 +63,7 @@ class MainSidebarViewProvider {
             if (message.type === "processCode") {
                 webviewView.webview.postMessage({ type: "statusUpdate", status: "⚡ Processing..." });
                 const result = await this.agent.processActiveFile();
-                // Update status to "Complete!" when done
+                // Update status
                 webviewView.webview.postMessage({ type: "statusUpdate", status: "✓ Completed!" });
                 webviewView.webview.postMessage({ type: "processedResult", result });
             }
