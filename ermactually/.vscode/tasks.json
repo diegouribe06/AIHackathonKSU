@@ -4,8 +4,18 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "npm",
-			"script": "watch",
+			// "type": "npm",
+            // "script": "watch",
+			
+			"type": "shell",
+			"label": "tsc: watch",
+			"command": "node",
+			"args": [
+				"${workspaceFolder}/node_modules/typescript/bin/tsc",
+				"-watch",
+				"-p",
+				"."
+			],
 			"problemMatcher": "$tsc-watch",
 			"isBackground": true,
 			"presentation": {
@@ -14,6 +24,33 @@
 			"group": {
 				"kind": "build",
 				"isDefault": true
+			},
+
+
+			"options": {
+				"cwd": "${workspaceFolder}"
+			
+			
+			}
+		},
+		{
+
+
+
+			
+			
+			"type": "shell",
+			"label": "tsc: build",
+			"command": "node",
+			"args": [
+				"${workspaceFolder}/node_modules/typescript/bin/tsc",
+				"-p",
+				"."
+			],
+			"problemMatcher": "$tsc",
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}"
 			}
 		}
 	]
