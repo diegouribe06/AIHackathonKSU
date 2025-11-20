@@ -6,6 +6,15 @@ type Prompt = {
     code: string;
 };
 
+type Answer = {
+    line_numbers: string | number | number[],
+    issue_type: "string",
+    severity: "low" | "medium" | "high" | "critical",
+    description: string,
+    recommendation: string
+}
+
+
 export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'ermactually.mainSidebarView';
 
@@ -35,7 +44,7 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
     /** ----------------------------
      *  PROCESS ACTIVE FILE
      *  ---------------------------- */
-    private async processActiveFile(): Promise<string> {
+    private async processActiveFile(): Promise<Answer[] | string> {
 
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
@@ -50,7 +59,7 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
         }
 
         const prompt: Prompt = {
-            initPrompt: "Analyze the following code and provide insights:",
+            initPrompt: "You are a real-time security auditor. Periodically check the programmer's newly added or modified code. Analyze only the code shown to you.Your task is to detect any lines that could cause present or future security vulnerabilities, including (but not limited to): injection risks, insecure input handling, unsafe API usage, insecure cryptography, hardcoded secrets, file permission issues, memory safety issues, deserialization problems, or potential privilege escalation.For every vulnerability you detect, output a JSON array where each element describes one issue. Each element must follow this exact structure:{\"line_numbers\": \"string | number | number[] | range (e.g., '12-18')\",\"issue_type\": \"string\",\"severity\": \"low | medium | high | critical\",\"description\": \"Short explanation of why this line may create a future vulnerability.\",\"recommendation\": \"Actionable safer alternative.\"}If no issues are found, output: []You must output JSON only. IMPORTANT: Output JSON ONLY with no code fences, no backticks, no explanation.Do NOT wrap the JSON in ```json or ``` blocks. Output ONLY raw JSON.",
             code: document.getText()
         };
 
@@ -60,7 +69,10 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
                 input: prompt.initPrompt + "\n\n" + prompt.code
             });
 
-            return response.output_text;
+            const text = response.output_text.trim();
+            const issues = JSON.parse(text) as Answer[];
+
+            return issues;
         } catch (err) {
             console.error(err);
             return "Error contacting OpenAI: " + String(err);
@@ -142,15 +154,17 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
                 <div class="vulnerabilities-box">
                     <div class="vulnerability-category">
                         <h4 class="vulnerability-category-title">Most Important Vulnerabilities</h4>
-                        <p class="vulnerability-category-content vulnerability-important" id="importantVulns">There is no current issues</p>
+                        <div id="importantVulnContainer" class="vulnerability-list"></div>
                     </div>
+
                     <div class="vulnerability-category">
                         <h4 class="vulnerability-category-title">Warning Vulnerabilities</h4>
-                        <p class="vulnerability-category-content vulnerability-warning" id="warningVulns">There is no current issues</p>
+                        <div id="warningVulnContainer" class="vulnerability-list"></div>
                     </div>
+
                     <div class="vulnerability-category">
                         <h4 class="vulnerability-category-title">Not a Vulnerability</h4>
-                        <p class="vulnerability-category-content vulnerability-safe" id="safeVulns">There is no current issues</p>
+                        <div id="safeVulnContainer" class="vulnerability-list"></div>
                     </div>
                 </div>
             </div>

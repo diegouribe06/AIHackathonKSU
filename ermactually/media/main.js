@@ -8,6 +8,21 @@
     // acquireVsCodeApi must be called at the top level
     const vscode = acquireVsCodeApi();
 
+    function renderIssue(issue) {
+        return `
+            <div class="issue-item">
+                <div class="issue-header">
+                    <span class="issue-type">${issue.issue_type}</span>
+                    <span class="issue-severity">${issue.severity}</span>
+                </div>
+                <div class="issue-lines">Lines: ${issue.line_numbers}</div>
+                <div class="issue-description">${issue.description}</div>
+                <div class="issue-reco"><em>${issue.recommendation}</em></div>
+            </div>
+        `;
+    }
+
+
     function init() {
         // Settings popup functionality
         const settingsButton = document.getElementById('settingsButton');
@@ -55,11 +70,28 @@
 
     // Listen for messages from the extension
     window.addEventListener('message', event => {
-        // const output = document.getElementById('output');
-        // output.textContent = message.result;
         const message = event.data;
-        if (message && message.type === 'processedResult') {
-            // Handle processed results (functionality to be added later)
+
+        if (message.type === "processedResult") {
+            const issues = message.result;
+
+            if (!Array.isArray(issues)) {
+                console.error("Invalid issues:", issues);
+                return;
+            }
+
+            const important = issues.filter(i => ["critical", "high"].includes(i.severity));
+            const warning   = issues.filter(i => i.severity === "medium");
+            const safe      = issues.filter(i => i.severity === "low");
+
+            document.getElementById("importantVulnContainer").innerHTML =
+                important.length ? important.map(renderIssue).join("") : `<p>No issues found</p>`;
+
+            document.getElementById("warningVulnContainer").innerHTML =
+                warning.length ? warning.map(renderIssue).join("") : `<p>No issues found</p>`;
+
+            document.getElementById("safeVulnContainer").innerHTML =
+                safe.length ? safe.map(renderIssue).join("") : `<p>No issues found</p>`;
         }
     });
 })();
