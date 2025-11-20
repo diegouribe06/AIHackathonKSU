@@ -34,6 +34,9 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
         const scriptUri = webview.asWebviewUri(
             vscode.Uri.joinPath(this._extensionUri, "media", "main.js")
         );
+        const styleUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, "media", "style.css")
+        );
 
         const nonce = this.getNonce();
 
@@ -41,48 +44,110 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
         <html lang="en">
         <head>
             <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; img-src ${webview.cspSource};">
+            <meta http-equiv="Content-Security-Policy" 
+                content="
+                    default-src 'none'; 
+                    script-src 'nonce-${nonce}' ${webview.cspSource}; 
+                    style-src ${webview.cspSource} 'unsafe-inline'; 
+                    img-src ${webview.cspSource} data:;">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Erm View</title>
+            <title>Ermactually</title>
+            <link href="${styleUri}" rel="stylesheet">
         </head>
-        <body style="margin: 0; padding: 16px; font-family: var(--vscode-font-family); color: var(--vscode-foreground); background-color: var(--vscode-editor-background);">
+        <body>
             <!-- Commit Status Section -->
-            <div style="margin-bottom: 20px;">
-                <h2 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">Commit Status:</h2>
-                <div style="padding: 8px; background-color: var(--vscode-input-background); border-radius: 4px; font-size: 12px;">
-                    <span style="color: var(--vscode-textLink-foreground);">✓ Ready to commit</span>
+            <div class="commit-status-section">
+                <h2 class="commit-status-title">Commit Status:</h2>
+                <div class="commit-status-box">
+                    <span class="commit-status-text">✓ Waiting</span>
                 </div>
             </div>
 
             <!-- Image Placeholder -->
-            <div style="margin-bottom: 20px; text-align: center;">
-                <div style="width: 100%; height: 150px; background-color: var(--vscode-input-background); border: 1px dashed var(--vscode-input-border); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--vscode-descriptionForeground); font-size: 12px;">
+            <div class="image-placeholder-container">
+                <div class="image-placeholder">
                     Image Placeholder
                 </div>
             </div>
 
             <!-- Vulnerabilities Section -->
-            <div style="margin-bottom: 20px;">
-                <h3 style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">Vulnerabilities</h3>
-                <div style="padding: 12px; background-color: var(--vscode-input-background); border-radius: 4px; min-height: 60px;">
-                    <p style="margin: 0; font-size: 12px; color: var(--vscode-descriptionForeground);">There is no current issues</p>
-                </div>
-            </div>
-
-            <!-- Warnings Section -->
-            <div style="margin-bottom: 20px;">
-                <h3 style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600;">Warnings</h3>
-                <div style="padding: 12px; background-color: var(--vscode-input-background); border-radius: 4px; min-height: 60px;">
-                    <p style="margin: 0; font-size: 12px; color: var(--vscode-descriptionForeground);">There are no current warnings</p>
+            <div class="vulnerabilities-section">
+                <h3 class="vulnerabilities-title">Vulnerabilities</h3>
+                <div class="vulnerabilities-box">
+                    <div class="vulnerability-category">
+                        <h4 class="vulnerability-category-title">Most Important Vulnerabilities</h4>
+                        <p class="vulnerability-category-content vulnerability-important" id="importantVulns">There is no current issues</p>
+                    </div>
+                    <div class="vulnerability-category">
+                        <h4 class="vulnerability-category-title">Warning Vulnerabilities</h4>
+                        <p class="vulnerability-category-content vulnerability-warning" id="warningVulns">There is no current issues</p>
+                    </div>
+                    <div class="vulnerability-category">
+                        <h4 class="vulnerability-category-title">Not a Vulnerability</h4>
+                        <p class="vulnerability-category-content vulnerability-safe" id="safeVulns">There is no current issues</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Bottom Action Buttons -->
-            <div style="display: flex; justify-content: space-between; margin-top: auto; padding-top: 16px; border-top: 1px solid var(--vscode-input-border);">
-                <button id="runButton" style="flex: 1; margin-right: 8px; padding: 8px 16px; background-color: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">Run</button>
-                <button id="settingsButton" style="padding: 8px 12px; background-color: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); border: none; border-radius: 4px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center;">
-                    ⚙️
-                </button>
+            <div class="bottom-actions">
+                <button id="runButton">Run</button>
+                <button id="settingsButton">⚙️</button>
+            </div>
+
+            <!-- Settings Overlay -->
+            <div class="settings-overlay" id="settingsOverlay"></div>
+
+            <!-- Settings Popup -->
+            <div class="settings-popup" id="settingsPopup">
+                <div class="settings-popup-header">
+                    <h3 class="settings-popup-title">Settings</h3>
+                    <button class="settings-popup-close" id="settingsClose">×</button>
+                </div>
+                
+                <div class="settings-section">
+                    <h4 class="settings-section-title">Appearance</h4>
+                    <div class="settings-option">
+                        <span class="settings-option-label">Light Mode</span>
+                        <button class="settings-toggle" id="lightModeToggle">
+                            <span class="settings-toggle-slider"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4 class="settings-section-title">Text Size</h4>
+                    <div class="settings-option">
+                        <span class="settings-option-label">Adjust Text Size</span>
+                        <div class="settings-text-size-controls">
+                            <button class="settings-text-size-button" id="decreaseTextSize">-</button>
+                            <span class="settings-text-size-display" id="textSizeDisplay">100%</span>
+                            <button class="settings-text-size-button" id="increaseTextSize">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4 class="settings-section-title">Vulnerability Colors</h4>
+                    <div class="settings-option">
+                        <span class="settings-option-label">Most Important</span>
+                        <div class="color-picker-container">
+                            <input type="color" class="color-picker" id="importantColorPicker" value="#ff8c00">
+                        </div>
+                    </div>
+                    <div class="settings-option">
+                        <span class="settings-option-label">Warning</span>
+                        <div class="color-picker-container">
+                            <input type="color" class="color-picker" id="warningColorPicker" value="#ffd700">
+                        </div>
+                    </div>
+                    <div class="settings-option">
+                        <span class="settings-option-label">Not a Vulnerability</span>
+                        <div class="color-picker-container">
+                            <input type="color" class="color-picker" id="safeColorPicker" value="#90ee90">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <script nonce="${nonce}" src="${scriptUri}"></script>
