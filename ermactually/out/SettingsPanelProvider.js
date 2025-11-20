@@ -33,42 +33,79 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MainSidebarViewProvider = void 0;
+exports.SettingsPanelProvider = void 0;
 const vscode = __importStar(require("vscode"));
-class MainSidebarViewProvider {
-    agent;
-    _extensionUri;
-    static viewType = 'ermactually.mainSidebarView';
-    _view;
-    constructor(agent, _extensionUri) {
-        this.agent = agent;
-        this._extensionUri = _extensionUri;
-    }
-    resolveWebviewView(webviewView, context, _token) {
-        this._view = webviewView;
-        webviewView.webview.options = {
+class SettingsPanelProvider {
+    static currentPanel = undefined;
+    static createSettingsPanel(context, extensionUri) {
+        // If panel already exists, reveal it instead of creating a new one
+        if (SettingsPanelProvider.currentPanel) {
+            SettingsPanelProvider.currentPanel.reveal(vscode.ViewColumn.Beside);
+            return SettingsPanelProvider.currentPanel;
+        }
+        // Create new panel in a separate editor group (popup-like behavior)
+        const panel = vscode.window.createWebviewPanel('ermactuallySettings', 'ErmActually Settings', {
+            viewColumn: vscode.ViewColumn.Beside,
+            preserveFocus: false
+        }, {
             enableScripts: true,
-            localResourceRoots: [vscode.Uri.joinPath(this._extensionUri, 'media')]
-        };
-        webviewView.webview.html = this.getHtml(webviewView.webview);
-        webviewView.webview.onDidReceiveMessage(async (message) => {
-            if (message.type === "processCode") {
-                const result = await this.agent.processActiveFile();
-                webviewView.webview.postMessage({ type: "processedResult", result });
-            }
-            else if (message.type === "openSettings") {
-                // Open settings panel
-                vscode.commands.executeCommand('ermactually.openSettings');
+            localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')],
+            retainContextWhenHidden: true
+        });
+        // Track the panel and clean up when it's disposed
+        SettingsPanelProvider.currentPanel = panel;
+        panel.onDidDispose(() => {
+            SettingsPanelProvider.currentPanel = undefined;
+        });
+        panel.webview.html = SettingsPanelProvider.getSettingsHtml(panel.webview, extensionUri);
+        panel.webview.onDidReceiveMessage(async (message) => {
+            switch (message.type) {
+                case 'saveSettings':
+                    await context.workspaceState.update('ermactually.settings', message.settings);
+                    vscode.window.showInformationMessage('Settings saved successfully!');
+                    break;
+                case 'loadSettings':
+                    const settings = context.workspaceState.get('ermactually.settings', {
+                        lightMode: false,
+                        textSize: 100,
+                        importantColor: '#ff8c00',
+                        warningColor: '#ffd700',
+                        safeColor: '#90ee90'
+                    });
+                    panel.webview.postMessage({ type: 'settingsLoaded', settings });
+                    break;
             }
         });
+        // Load settings when panel becomes visible
+        panel.onDidChangeViewState(() => {
+            if (panel.visible) {
+                const settings = context.workspaceState.get('ermactually.settings', {
+                    lightMode: false,
+                    textSize: 100,
+                    importantColor: '#ff8c00',
+                    warningColor: '#ffd700',
+                    safeColor: '#90ee90'
+                });
+                panel.webview.postMessage({ type: 'settingsLoaded', settings });
+            }
+        });
+        // Initial load after a short delay to ensure webview is ready
+        setTimeout(() => {
+            const settings = context.workspaceState.get('ermactually.settings', {
+                lightMode: false,
+                textSize: 100,
+                importantColor: '#ff8c00',
+                warningColor: '#ffd700',
+                safeColor: '#90ee90'
+            });
+            panel.webview.postMessage({ type: 'settingsLoaded', settings });
+        }, 100);
+        return panel;
     }
-    /** ----------------------------
-     *  HTML
-     *  ---------------------------- */
-    getHtml(webview) {
-        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "main.js"));
-        const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "style.css"));
-        const nonce = this.getNonce();
+    static getSettingsHtml(webview, extensionUri) {
+        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "settings.js"));
+        const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "style.css"));
+        const nonce = SettingsPanelProvider.getNonce();
         return /*html*/ `
         <!DOCTYPE html>
         <html>
@@ -81,64 +118,15 @@ class MainSidebarViewProvider {
                     style-src ${webview.cspSource} 'unsafe-inline'; 
                     img-src ${webview.cspSource} data:;">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Ermactually</title>
+            <title>ErmActually Settings</title>
             <link href="${styleUri}" rel="stylesheet">
         </head>
         <body>
-            <!-- Commit Status Section -->
-            <div class="commit-status-section">
-                <h2 class="commit-status-title">Commit Status:</h2>
-                <div class="commit-status-box">
-                    <span class="commit-status-text">✓ Waiting</span>
-                </div>
-            </div>
-
-            <!-- Image Placeholder -->
-            <div class="image-placeholder-container">
-                <div class="image-placeholder">
-                    Image Placeholder
-                </div>
-            </div>
-
-            <!-- Vulnerabilities Section -->
-            <div class="vulnerabilities-section">
-                <h3 class="vulnerabilities-title">Vulnerabilities</h3>
-                <div class="vulnerabilities-box">
-                    <div class="vulnerability-category">
-                        <h4 class="vulnerability-category-title">Most Important Vulnerabilities</h4>
-                        <div id="importantVulnContainer" class="vulnerability-list"></div>
-                    </div>
-
-                    <div class="vulnerability-category">
-                        <h4 class="vulnerability-category-title">Warning Vulnerabilities</h4>
-                        <div id="warningVulnContainer" class="vulnerability-list"></div>
-                    </div>
-
-                    <div class="vulnerability-category">
-                        <h4 class="vulnerability-category-title">Not a Vulnerability</h4>
-                        <div id="safeVulnContainer" class="vulnerability-list"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom Action Buttons -->
-            <div class="bottom-actions">
-                <button id="runButton">Run</button>
-                <button id="settingsButton">⚙️</button>
-            </div>
-
-            <!-- Settings Overlay -->
-            <div class="settings-overlay" id="settingsOverlay"></div>
-
-            <!-- Settings Popup -->
-            <div class="settings-popup" id="settingsPopup">
-                <div class="settings-popup-header">
-                    <h3 class="settings-popup-title">Settings</h3>
-                    <button class="settings-popup-close" id="settingsClose">×</button>
-                </div>
+            <div class="settings-container">
+                <h2 class="settings-header">ErmActually Settings</h2>
                 
                 <div class="settings-section">
-                    <h4 class="settings-section-title">Appearance</h4>
+                    <h3 class="settings-section-title">Appearance</h3>
                     <div class="settings-option">
                         <span class="settings-option-label">Light Mode</span>
                         <button class="settings-toggle" id="lightModeToggle">
@@ -148,7 +136,7 @@ class MainSidebarViewProvider {
                 </div>
 
                 <div class="settings-section">
-                    <h4 class="settings-section-title">Text Size</h4>
+                    <h3 class="settings-section-title">Text Size</h3>
                     <div class="settings-option">
                         <span class="settings-option-label">Adjust Text Size</span>
                         <div class="settings-text-size-controls">
@@ -160,7 +148,7 @@ class MainSidebarViewProvider {
                 </div>
 
                 <div class="settings-section">
-                    <h4 class="settings-section-title">Vulnerability Colors</h4>
+                    <h3 class="settings-section-title">Vulnerability Colors</h3>
                     <div class="settings-option">
                         <span class="settings-option-label">Most Important</span>
                         <div class="color-picker-container">
@@ -180,16 +168,20 @@ class MainSidebarViewProvider {
                         </div>
                     </div>
                 </div>
+
+                <div class="settings-actions">
+                    <button id="saveSettingsButton" class="settings-save-button">Save Settings</button>
+                </div>
             </div>
 
             <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
         </html>`;
     }
-    getNonce() {
+    static getNonce() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         return Array.from({ length: 32 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
     }
 }
-exports.MainSidebarViewProvider = MainSidebarViewProvider;
-//# sourceMappingURL=MainSidebarViewProvider.js.map
+exports.SettingsPanelProvider = SettingsPanelProvider;
+//# sourceMappingURL=SettingsPanelProvider.js.map

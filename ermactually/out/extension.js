@@ -58,6 +58,11 @@ function activate(context) {
         }
     });
     context.subscriptions.push(setApiKey);
+    const openSettings = vscode.commands.registerCommand('ermactually.openSettings', () => {
+        //changed:  MainSidebarViewProvider.createSettingsPanel(context, context.extensionUri);
+        //SettingsPanelProvider.createSettingsPanel(context, context.extensionUri);
+    });
+    context.subscriptions.push(openSettings);
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "ermactually" is now active!');

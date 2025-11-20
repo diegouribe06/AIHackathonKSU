@@ -7,6 +7,15 @@ type Prompt = {
     code: string;
 };
 
+type Answer = {
+    line_numbers: string | number | number[],
+    issue_type: "string",
+    severity: "low" | "medium" | "high" | "critical",
+    description: string,
+    recommendation: string
+}
+
+
 export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'ermactually.mainSidebarView';
 
@@ -17,60 +26,6 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
         private readonly _extensionUri: vscode.Uri
     ) {}
 
-    /** ----------------------------
-     *  SECRET STORAGE + OPENAI CLIENT
-     *  ---------------------------- */
-    // private async getOpenAIClient(): Promise<OpenAI | undefined> {
-    //     const apiKey = await this._context.secrets.get('openaiApiKey');
-
-    //     if (!apiKey) {
-    //         vscode.window.showErrorMessage(
-    //             "OpenAI API Key not set. Run: 'ErmActually: Set OpenAI API Key'"
-    //         );
-    //         return undefined;
-    //     }
-
-    //     return new OpenAI({ apiKey });
-    // }
-
-    // /** ----------------------------
-    //  *  PROCESS ACTIVE FILE
-    //  *  ---------------------------- */
-    // private async processActiveFile(): Promise<string> {
-
-    //     const editor = vscode.window.activeTextEditor;
-    //     if (!editor) {
-    //         return "No active editor";
-    //     }
-
-    //     const document = editor.document;
-
-    //     const client = await this.getOpenAIClient();
-    //     if (!client) {
-    //         return "Missing API key.";
-    //     }
-
-    //     const prompt: Prompt = {
-    //         initPrompt: "Analyze the following code and provide insights:",
-    //         code: document.getText()
-    //     };
-
-    //     try {
-    //         const response = await client.responses.create({
-    //             model: "gpt-4o",
-    //             input: prompt.initPrompt + "\n\n" + prompt.code
-    //         });
-
-    //         return response.output_text;
-    //     } catch (err) {
-    //         console.error(err);
-    //         return "Error contacting OpenAI: " + String(err);
-    //     }
-    // }
-
-    /** ----------------------------
-     *  WEBVIEW SETUP
-     *  ---------------------------- */
     resolveWebviewView(
         webviewView: vscode.WebviewView,
         context: vscode.WebviewViewResolveContext,
@@ -84,11 +39,14 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
         };
 
         webviewView.webview.html = this.getHtml(webviewView.webview);
-
+        
         webviewView.webview.onDidReceiveMessage(async (message) => {
             if (message.type === "processCode") {
                 const result = await this.agent.processActiveFile();
                 webviewView.webview.postMessage({ type: "processedResult", result });
+            } else if (message.type === "openSettings") {
+                // Open settings panel
+                vscode.commands.executeCommand('ermactually.openSettings');
             }
         });
     }
@@ -143,15 +101,17 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
                 <div class="vulnerabilities-box">
                     <div class="vulnerability-category">
                         <h4 class="vulnerability-category-title">Most Important Vulnerabilities</h4>
-                        <p class="vulnerability-category-content vulnerability-important" id="importantVulns">There is no current issues</p>
+                        <div id="importantVulnContainer" class="vulnerability-list"></div>
                     </div>
+
                     <div class="vulnerability-category">
                         <h4 class="vulnerability-category-title">Warning Vulnerabilities</h4>
-                        <p class="vulnerability-category-content vulnerability-warning" id="warningVulns">There is no current issues</p>
+                        <div id="warningVulnContainer" class="vulnerability-list"></div>
                     </div>
+
                     <div class="vulnerability-category">
                         <h4 class="vulnerability-category-title">Not a Vulnerability</h4>
-                        <p class="vulnerability-category-content vulnerability-safe" id="safeVulns">There is no current issues</p>
+                        <div id="safeVulnContainer" class="vulnerability-list"></div>
                     </div>
                 </div>
             </div>
