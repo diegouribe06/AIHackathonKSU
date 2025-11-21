@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { OpenAI } from 'openai';
 import { Agent } from './PromptWrapper';
+import { DecorationManager } from './DecorationManager';
 
 /** Escape anything that would break a template literal or webview HTML */
 function sanitizeForWebview(str: string): string {
@@ -12,12 +13,15 @@ function sanitizeForWebview(str: string): string {
 export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'ermactually.mainSidebarView';
     private _view?: vscode.WebviewView;
+    private decorationManager: DecorationManager;
 
     constructor(
         private agent: Agent,
         private readonly _context: vscode.ExtensionContext,
         private readonly _extensionUri: vscode.Uri
-    ) {}
+    ) {
+        this.decorationManager = new DecorationManager(_context);
+    }
 
     resolveWebviewView(
         webviewView: vscode.WebviewView,
@@ -45,6 +49,9 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
                 webviewView.webview.postMessage({ type: "statusUpdate", status: "⚡ Processing..." });
 
                 const result = await this.agent.processActiveFile();
+
+                // Update decorations
+                this.decorationManager.updateDecorations(result);
 
                 // Update status
                 webviewView.webview.postMessage({ type: "statusUpdate", status: "✓ Completed!" });
@@ -174,6 +181,10 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
         if (!this._view) return;
 
         const result = await this.agent.processActiveFile();
+        
+        // Update decorations
+        this.decorationManager.updateDecorations(result);
+        
         this._view.webview.postMessage({ type: "processedResult", result });
     }
 
@@ -198,6 +209,9 @@ export class MainSidebarViewProvider implements vscode.WebviewViewProvider {
 
     /** Update colors when command is called */
     public async updateColors(settings: any) {
+        // Update decoration colors
+        this.decorationManager.updateColors();
+        
         if (this._view) {
             this._view.webview.postMessage({ 
                 type: 'colorsChanged', 
