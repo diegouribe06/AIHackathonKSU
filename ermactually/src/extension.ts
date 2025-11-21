@@ -2,13 +2,14 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { MainSidebarViewProvider } from './MainSidebarViewProvider';
+import { SettingsPanelProvider } from './SettingsPanelProvider';
 import {Agent} from './PromptWrapper';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	const agent = new Agent(context);
-	const mainSidebarViewProvider = new MainSidebarViewProvider(agent, context.extensionUri);
+	const mainSidebarViewProvider = new MainSidebarViewProvider(agent, context, context.extensionUri);
 	
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
@@ -24,6 +25,14 @@ export function activate(context: vscode.ExtensionContext) {
 	const onlyWhitespaceOrNewline = /^[\s\n\r]*$/;
 
 	vscode.workspace.onDidChangeTextDocument((event) => {
+		// Check if auto-scan is enabled
+		const settings = context.workspaceState.get('ermactually.settings', {
+			autoScan: true
+		});
+		if (!settings.autoScan) {
+			return;
+		}
+
 		const active = vscode.window.activeTextEditor;
 		if (!active || event.document !== active.document) return;
 
@@ -80,12 +89,24 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(setApiKey);
 
-	const openSettings = vscode.commands.registerCommand('ermactually.openSettings', () => {
+		const openSettings = vscode.commands.registerCommand('ermactually.openSettings', () => {
 		//changed:  MainSidebarViewProvider.createSettingsPanel(context, context.extensionUri);
 		
-		//SettingsPanelProvider.createSettingsPanel(context, context.extensionUri);
+		SettingsPanelProvider.createSettingsPanel(context, context.extensionUri);
 	});
 	context.subscriptions.push(openSettings);
+
+	// Command to update light mode across all webviews
+	const updateLightMode = vscode.commands.registerCommand('ermactually.updateLightMode', (lightMode: boolean) => {
+		mainSidebarViewProvider.updateLightMode(lightMode);
+	});
+	context.subscriptions.push(updateLightMode);
+
+	// Command to update colors across all webviews
+	const updateColors = vscode.commands.registerCommand('ermactually.updateColors', (settings: any) => {
+		mainSidebarViewProvider.updateColors(settings);
+	});
+	context.subscriptions.push(updateColors);
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated

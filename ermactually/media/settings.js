@@ -5,8 +5,6 @@
     
     const vscode = acquireVsCodeApi();
 
-    let textSize = 100;
-
     function init() {
         // Request settings when view opens
         vscode.postMessage({ type: 'loadSettings' });
@@ -16,44 +14,47 @@
         if (lightModeToggle) {
             lightModeToggle.addEventListener('click', () => {
                 lightModeToggle.classList.toggle('active');
+                const isLightMode = lightModeToggle.classList.contains('active');
+                
+                // Apply light mode immediately to settings panel
+                applyLightMode(isLightMode);
+                
+                // Notify extension of light mode change
+                vscode.postMessage({ 
+                    type: 'lightModeChanged', 
+                    lightMode: isLightMode 
+                });
             });
         }
 
-        // Text size controls
-        const decreaseButton = document.getElementById('decreaseTextSize');
-        const increaseButton = document.getElementById('increaseTextSize');
-        const textSizeDisplay = document.getElementById('textSizeDisplay');
-
-        if (decreaseButton && increaseButton && textSizeDisplay) {
-            decreaseButton.addEventListener('click', () => {
-                if (textSize > 50) {
-                    textSize -= 10;
-                    textSizeDisplay.textContent = textSize + '%';
-                }
+        // Auto-scan toggle
+        const autoScanToggle = document.getElementById('autoScanToggle');
+        if (autoScanToggle) {
+            autoScanToggle.addEventListener('click', () => {
+                autoScanToggle.classList.toggle('active');
             });
+        }
 
-            increaseButton.addEventListener('click', () => {
-                if (textSize < 200) {
-                    textSize += 10;
-                    textSizeDisplay.textContent = textSize + '%';
-                }
-            });
+        function applyLightMode(isLightMode) {
+            document.body.classList.toggle('light-mode', isLightMode);
         }
 
         // Save settings button
         const saveButton = document.getElementById('saveSettingsButton');
         if (saveButton) {
             saveButton.addEventListener('click', () => {
-                const importantColorPicker = document.getElementById('importantColorPicker');
-                const warningColorPicker = document.getElementById('warningColorPicker');
-                const safeColorPicker = document.getElementById('safeColorPicker');
+                const criticalColorPicker = document.getElementById('criticalColorPicker');
+                const highColorPicker = document.getElementById('highColorPicker');
+                const mediumColorPicker = document.getElementById('mediumColorPicker');
+                const lowColorPicker = document.getElementById('lowColorPicker');
 
                 const settings = {
                     lightMode: lightModeToggle?.classList.contains('active') || false,
-                    textSize: textSize,
-                    importantColor: importantColorPicker?.value || '#ff8c00',
-                    warningColor: warningColorPicker?.value || '#ffd700',
-                    safeColor: safeColorPicker?.value || '#90ee90'
+                    autoScan: autoScanToggle?.classList.contains('active') !== false,
+                    criticalColor: criticalColorPicker?.value || '#ff4500',
+                    highColor: highColorPicker?.value || '#ff8c00',
+                    mediumColor: mediumColorPicker?.value || '#ffd700',
+                    lowColor: lowColorPicker?.value || '#32cd32'
                 };
                 vscode.postMessage({ type: 'saveSettings', settings });
             });
@@ -70,7 +71,19 @@
     // Listen for messages from the extension
     window.addEventListener('message', event => {
         const message = event.data;
-        if (message && message.type === 'settingsLoaded') {
+        if (message && message.type === 'lightModeChanged') {
+            // Apply light mode when received
+            applyLightMode(message.lightMode);
+            // Update toggle state
+            const lightModeToggle = document.getElementById('lightModeToggle');
+            if (lightModeToggle) {
+                if (message.lightMode) {
+                    lightModeToggle.classList.add('active');
+                } else {
+                    lightModeToggle.classList.remove('active');
+                }
+            }
+        } else if (message && message.type === 'settingsLoaded') {
             // Load settings into UI
             const settings = message.settings;
             
@@ -81,26 +94,35 @@
                 } else {
                     lightModeToggle.classList.remove('active');
                 }
+                // Apply light mode to settings panel
+                document.body.classList.toggle('light-mode', settings.lightMode);
             }
 
-            const textSizeDisplay = document.getElementById('textSizeDisplay');
-            if (textSizeDisplay && settings.textSize) {
-                textSize = settings.textSize;
-                textSizeDisplay.textContent = textSize + '%';
+            const autoScanToggle = document.getElementById('autoScanToggle');
+            if (autoScanToggle) {
+                if (settings.autoScan !== false) {
+                    autoScanToggle.classList.add('active');
+                } else {
+                    autoScanToggle.classList.remove('active');
+                }
             }
 
-            const importantColorPicker = document.getElementById('importantColorPicker');
-            const warningColorPicker = document.getElementById('warningColorPicker');
-            const safeColorPicker = document.getElementById('safeColorPicker');
+            const criticalColorPicker = document.getElementById('criticalColorPicker');
+            const highColorPicker = document.getElementById('highColorPicker');
+            const mediumColorPicker = document.getElementById('mediumColorPicker');
+            const lowColorPicker = document.getElementById('lowColorPicker');
             
-            if (importantColorPicker && settings.importantColor) {
-                importantColorPicker.value = settings.importantColor;
+            if (criticalColorPicker && settings.criticalColor) {
+                criticalColorPicker.value = settings.criticalColor;
             }
-            if (warningColorPicker && settings.warningColor) {
-                warningColorPicker.value = settings.warningColor;
+            if (highColorPicker && settings.highColor) {
+                highColorPicker.value = settings.highColor;
             }
-            if (safeColorPicker && settings.safeColor) {
-                safeColorPicker.value = settings.safeColor;
+            if (mediumColorPicker && settings.mediumColor) {
+                mediumColorPicker.value = settings.mediumColor;
+            }
+            if (lowColorPicker && settings.lowColor) {
+                lowColorPicker.value = settings.lowColor;
             }
         }
     });

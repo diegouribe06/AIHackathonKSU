@@ -43,11 +43,13 @@ function sanitizeForWebview(str) {
 }
 class MainSidebarViewProvider {
     agent;
+    _context;
     _extensionUri;
     static viewType = 'ermactually.mainSidebarView';
     _view;
-    constructor(agent, _extensionUri) {
+    constructor(agent, _context, _extensionUri) {
         this.agent = agent;
+        this._context = _context;
         this._extensionUri = _extensionUri;
     }
     resolveWebviewView(webviewView, _context, _token) {
@@ -59,6 +61,10 @@ class MainSidebarViewProvider {
             ]
         };
         webviewView.webview.html = this.getHtml(webviewView.webview);
+        // Load light mode setting on initialization
+        this.loadLightMode(webviewView.webview);
+        // Load colors on initialization
+        this.loadColors(webviewView.webview);
         webviewView.webview.onDidReceiveMessage(async (message) => {
             if (message.type === "processCode") {
                 webviewView.webview.postMessage({ type: "statusUpdate", status: "⚡ Processing..." });
@@ -78,6 +84,14 @@ class MainSidebarViewProvider {
     getHtml(webview) {
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "main.js"));
         const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "style.css"));
+        // GenZ mode images
+        const waitingHamsterUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "waiting_hamster.png"));
+        const thinkingHamsterUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "thinking_hamster.png"));
+        const bigBrainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "big_brain.png"));
+        const happyHamsterUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "happy_hamster.png"));
+        const thumbsUpUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "thumbs_up.png"));
+        const thumbsDownUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "thumbs_down.png"));
+        const sadHamsterUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, "media", "sad_hampster.png"));
         const nonce = this.getNonce();
         return `
         <!DOCTYPE html>
@@ -99,10 +113,17 @@ class MainSidebarViewProvider {
                     <span class="commit-status-text">⏳ Waiting...</span>
                 </div>
                 <p class="instruction-text">Put your API key in and select Run to get started.</p>
+                
+                <div class="genz-mode-toggle">
+                    <span class="genz-mode-label">GenZ Mode</span>
+                    <button class="settings-toggle" id="genzModeToggle">
+                        <span class="settings-toggle-slider"></span>
+                    </button>
+                </div>
             </div>
 
-            <div class="image-placeholder-container">
-                <div class="image-placeholder">Image Placeholder</div>
+            <div class="image-placeholder-container" id="imageContainer" style="display: none;">
+                <img id="genzImage" class="genz-image" src="${waitingHamsterUri}" alt="GenZ Mode Image" data-waiting="${waitingHamsterUri}" data-thinking="${thinkingHamsterUri}" data-bigbrain="${bigBrainUri}" data-happy="${happyHamsterUri}" data-thumbsup="${thumbsUpUri}" data-thumbsdown="${thumbsDownUri}" data-sad="${sadHamsterUri}" />
             </div>
 
             <div class="vulnerabilities-section">
@@ -150,6 +171,55 @@ class MainSidebarViewProvider {
             return;
         const result = await this.agent.processActiveFile();
         this._view.webview.postMessage({ type: "processedResult", result });
+    }
+    /** Load and apply light mode setting */
+    async loadLightMode(webview) {
+        const settings = this._context.workspaceState.get('ermactually.settings', {
+            lightMode: false,
+            textSize: 100,
+            importantColor: '#ff8c00',
+            warningColor: '#ffd700',
+            safeColor: '#90ee90'
+        });
+        webview.postMessage({ type: 'lightModeChanged', lightMode: settings.lightMode });
+    }
+    /** Update light mode when command is called */
+    async updateLightMode(lightMode) {
+        if (this._view) {
+            this._view.webview.postMessage({ type: 'lightModeChanged', lightMode });
+        }
+    }
+    /** Update colors when command is called */
+    async updateColors(settings) {
+        if (this._view) {
+            this._view.webview.postMessage({
+                type: 'colorsChanged',
+                colors: {
+                    critical: settings.criticalColor || '#ff4500',
+                    high: settings.highColor || '#ff8c00',
+                    medium: settings.mediumColor || '#ffd700',
+                    low: settings.lowColor || '#32cd32'
+                }
+            });
+        }
+    }
+    /** Load and apply colors on initialization */
+    async loadColors(webview) {
+        const settings = this._context.workspaceState.get('ermactually.settings', {
+            criticalColor: '#ff4500',
+            highColor: '#ff8c00',
+            mediumColor: '#ffd700',
+            lowColor: '#32cd32'
+        });
+        webview.postMessage({
+            type: 'colorsChanged',
+            colors: {
+                critical: settings.criticalColor || '#ff4500',
+                high: settings.highColor || '#ff8c00',
+                medium: settings.mediumColor || '#ffd700',
+                low: settings.lowColor || '#32cd32'
+            }
+        });
     }
 }
 exports.MainSidebarViewProvider = MainSidebarViewProvider;

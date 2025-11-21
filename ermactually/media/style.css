@@ -36,6 +36,22 @@ body {
     text-align: center;
 }
 
+/* GenZ Mode Toggle */
+.genz-mode-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding: 8px;
+    background-color: var(--vscode-input-background);
+    border-radius: 4px;
+}
+
+.genz-mode-label {
+    font-size: 12px;
+    color: var(--vscode-foreground);
+}
+
 /* Image Placeholder */
 .image-placeholder-container {
     margin-bottom: 20px;
@@ -53,6 +69,13 @@ body {
     justify-content: center;
     color: var(--vscode-descriptionForeground);
     font-size: 12px;
+}
+
+.genz-image {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border-radius: 4px;
 }
 
 /* Vulnerabilities Section */
@@ -472,6 +495,151 @@ body {
 
 .settings-save-button:hover {
     background-color: var(--vscode-button-hoverBackground);
+}
+
+/* Light Mode Styles for Settings Panel */
+body.light-mode {
+    background-color: #ffffff;
+    color: #1a1a1a;
+}
+
+/* Main Sidebar Light Mode Styles */
+body.light-mode .commit-status-title {
+    color: #000000;
+    font-weight: 700;
+}
+
+body.light-mode .commit-status-box {
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+}
+
+body.light-mode .commit-status-text {
+    color: #0052a3;
+    font-weight: 600;
+}
+
+body.light-mode .instruction-text {
+    color: #1a1a1a;
+}
+
+body.light-mode .genz-mode-toggle {
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+}
+
+body.light-mode .genz-mode-label {
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+body.light-mode .vulnerabilities-title {
+    color: #000000;
+    font-weight: 700;
+}
+
+body.light-mode .vulnerabilities-box {
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+}
+
+body.light-mode .vulnerability-category h4 {
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+body.light-mode .issue-item {
+    background-color: #ffffff;
+    border: 1px solid #c0c0c0;
+}
+
+body.light-mode .issue-header {
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+body.light-mode .issue-description {
+    color: #1a1a1a;
+}
+
+body.light-mode .vulnerability-empty {
+    color: #666666;
+}
+
+body.light-mode #runButton,
+body.light-mode #settingsButton {
+    background-color: #0052a3;
+    color: #ffffff;
+    border: 1px solid #003d7a;
+    font-weight: 600;
+}
+
+body.light-mode #runButton:hover,
+body.light-mode #settingsButton:hover {
+    background-color: #003d7a;
+    border-color: #002d5a;
+}
+
+body.light-mode .settings-container {
+    background-color: #ffffff;
+}
+
+body.light-mode .settings-header {
+    color: #000000;
+    font-weight: 700;
+    border-bottom-color: #c0c0c0;
+}
+
+body.light-mode .settings-section-title {
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+body.light-mode .settings-option {
+    background-color: #f5f5f5;
+    border: 1px solid #d0d0d0;
+}
+
+body.light-mode .settings-option-label {
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+body.light-mode .settings-toggle {
+    background-color: #b0b0b0;
+    border: 1px solid #808080;
+}
+
+body.light-mode .settings-toggle.active {
+    background-color: #0052a3;
+    border-color: #003d7a;
+}
+
+body.light-mode .settings-toggle-slider {
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+body.light-mode .settings-text-size-button,
+body.light-mode .settings-save-button {
+    background-color: #0052a3;
+    color: #ffffff;
+    border: 1px solid #003d7a;
+    font-weight: 600;
+}
+
+body.light-mode .settings-text-size-button:hover,
+body.light-mode .settings-save-button:hover {
+    background-color: #003d7a;
+    border-color: #002d5a;
+}
+
+body.light-mode .color-picker {
+    border: 2px solid #808080;
+}
+
+body.light-mode .settings-actions {
+    border-top-color: #c0c0c0;
 }
 
 

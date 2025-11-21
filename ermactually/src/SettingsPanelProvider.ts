@@ -41,16 +41,40 @@ export class SettingsPanelProvider {
                 case 'saveSettings':
                     await context.workspaceState.update('ermactually.settings', message.settings);
                     vscode.window.showInformationMessage('Settings saved successfully!');
+                    // Broadcast light mode change
+                    vscode.commands.executeCommand('ermactually.updateLightMode', message.settings.lightMode);
+                    // Broadcast color changes
+                    vscode.commands.executeCommand('ermactually.updateColors', message.settings);
+                    // Apply to settings panel
+                    panel.webview.postMessage({ type: 'lightModeChanged', lightMode: message.settings.lightMode });
                     break;
                 case 'loadSettings':
                     const settings = context.workspaceState.get('ermactually.settings', {
                         lightMode: false,
-                        textSize: 100,
-                        importantColor: '#ff8c00',
-                        warningColor: '#ffd700',
-                        safeColor: '#90ee90'
+                        autoScan: true,
+                        criticalColor: '#ff4500',
+                        highColor: '#ff8c00',
+                        mediumColor: '#ffd700',
+                        lowColor: '#32cd32'
                     });
                     panel.webview.postMessage({ type: 'settingsLoaded', settings });
+                    // Also send light mode change to apply immediately
+                    panel.webview.postMessage({ type: 'lightModeChanged', lightMode: settings.lightMode });
+                    break;
+                case 'lightModeChanged':
+                    // Save light mode immediately when toggled
+                    const currentSettings = context.workspaceState.get('ermactually.settings', {
+                        lightMode: false,
+                        autoScan: true,
+                        criticalColor: '#ff4500',
+                        highColor: '#ff8c00',
+                        mediumColor: '#ffd700',
+                        lowColor: '#32cd32'
+                    });
+                    currentSettings.lightMode = message.lightMode;
+                    await context.workspaceState.update('ermactually.settings', currentSettings);
+                    // Broadcast to main sidebar view
+                    vscode.commands.executeCommand('ermactually.updateLightMode', message.lightMode);
                     break;
             }
         });
@@ -66,6 +90,8 @@ export class SettingsPanelProvider {
                     safeColor: '#90ee90'
                 });
                 panel.webview.postMessage({ type: 'settingsLoaded', settings });
+                // Also send light mode change to apply immediately
+                panel.webview.postMessage({ type: 'lightModeChanged', lightMode: settings.lightMode });
             }
         });
 
@@ -124,35 +150,39 @@ export class SettingsPanelProvider {
                 </div>
 
                 <div class="settings-section">
-                    <h3 class="settings-section-title">Text Size</h3>
+                    <h3 class="settings-section-title">Scanning</h3>
                     <div class="settings-option">
-                        <span class="settings-option-label">Adjust Text Size</span>
-                        <div class="settings-text-size-controls">
-                            <button class="settings-text-size-button" id="decreaseTextSize">-</button>
-                            <span class="settings-text-size-display" id="textSizeDisplay">100%</span>
-                            <button class="settings-text-size-button" id="increaseTextSize">+</button>
-                        </div>
+                        <span class="settings-option-label">Auto-Scan</span>
+                        <button class="settings-toggle" id="autoScanToggle">
+                            <span class="settings-toggle-slider"></span>
+                        </button>
                     </div>
                 </div>
 
                 <div class="settings-section">
                     <h3 class="settings-section-title">Vulnerability Colors</h3>
                     <div class="settings-option">
-                        <span class="settings-option-label">Most Important</span>
+                        <span class="settings-option-label">Critical</span>
                         <div class="color-picker-container">
-                            <input type="color" class="color-picker" id="importantColorPicker" value="#ff8c00">
+                            <input type="color" class="color-picker" id="criticalColorPicker" value="#ff4500">
                         </div>
                     </div>
                     <div class="settings-option">
-                        <span class="settings-option-label">Warning</span>
+                        <span class="settings-option-label">High</span>
                         <div class="color-picker-container">
-                            <input type="color" class="color-picker" id="warningColorPicker" value="#ffd700">
+                            <input type="color" class="color-picker" id="highColorPicker" value="#ff8c00">
                         </div>
                     </div>
                     <div class="settings-option">
-                        <span class="settings-option-label">Not a Vulnerability</span>
+                        <span class="settings-option-label">Medium</span>
                         <div class="color-picker-container">
-                            <input type="color" class="color-picker" id="safeColorPicker" value="#90ee90">
+                            <input type="color" class="color-picker" id="mediumColorPicker" value="#ffd700">
+                        </div>
+                    </div>
+                    <div class="settings-option">
+                        <span class="settings-option-label">Low</span>
+                        <div class="color-picker-container">
+                            <input type="color" class="color-picker" id="lowColorPicker" value="#32cd32">
                         </div>
                     </div>
                 </div>

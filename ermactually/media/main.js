@@ -28,6 +28,59 @@
     }
 
 
+    let genzModeEnabled = false;
+    let currentIssues = [];
+
+    function updateGenzImage() {
+        const imageContainer = document.getElementById('imageContainer');
+        const genzImage = document.getElementById('genzImage');
+        
+        if (!genzModeEnabled) {
+            imageContainer.style.display = 'none';
+            return;
+        }
+
+        imageContainer.style.display = 'block';
+        
+        if (!genzImage) return;
+        
+        // Get image URI from data attributes based on current status and issues
+        const statusText = document.querySelector('.commit-status-text')?.textContent || '';
+        let imageUri = '';
+        
+        // Check if processing/working
+        if (statusText.includes('Processing') || statusText.includes('Working')) {
+            imageUri = genzImage.getAttribute('data-thinking') || '';
+        } else if (statusText.includes('Waiting')) {
+            imageUri = genzImage.getAttribute('data-waiting') || '';
+        } else if (currentIssues.length === 0) {
+            // No errors - show big brain
+            imageUri = genzImage.getAttribute('data-bigbrain') || '';
+        } else {
+            const critical = currentIssues.filter(i => i.severity === "critical");
+            const high = currentIssues.filter(i => i.severity === "high");
+            const medium = currentIssues.filter(i => i.severity === "medium");
+            const low = currentIssues.filter(i => i.severity === "low");
+            
+            if (critical.length > 0) {
+                imageUri = genzImage.getAttribute('data-sad') || '';
+            } else if (high.length > 0) {
+                imageUri = genzImage.getAttribute('data-thumbsdown') || '';
+            } else if (medium.length > 0) {
+                imageUri = genzImage.getAttribute('data-thumbsup') || '';
+            } else if (low.length > 0) {
+                // Only low errors - show happy hamster
+                imageUri = genzImage.getAttribute('data-happy') || '';
+            } else {
+                imageUri = genzImage.getAttribute('data-waiting') || '';
+            }
+        }
+        
+        if (imageUri) {
+            genzImage.src = imageUri;
+        }
+    }
+
     function init() {
         // Settings button - opens settings panel
         const settingsButton = document.getElementById('settingsButton');
@@ -37,11 +90,21 @@
             });
         }
 
-        // Run button (placeholder - functionality to be added later)
+        // Run button
         const runButton = document.getElementById('runButton');
         if (runButton) {
             runButton.addEventListener('click', () => {
-                vscode.postMessage({ type: 'processCode' });
+    vscode.postMessage({ type: 'processCode' });
+});
+        }
+
+        // GenZ Mode toggle
+        const genzToggle = document.getElementById('genzModeToggle');
+        if (genzToggle) {
+            genzToggle.addEventListener('click', () => {
+                genzModeEnabled = !genzModeEnabled;
+                genzToggle.classList.toggle('active');
+                updateGenzImage();
             });
         }
     }
@@ -62,13 +125,68 @@
         }
     }
 
-    // Listen for messages from the extension
-    window.addEventListener('message', event => {
-        const message = event.data;
+    // Function to apply light mode
+    function applyLightMode(isLightMode) {
+        document.body.classList.toggle('light-mode', isLightMode);
+    }
+
+    // Function to apply custom colors
+    function applyColors(colors) {
+        // Create or update style element
+        let styleElement = document.getElementById('custom-severity-colors');
+        if (!styleElement) {
+            styleElement = document.createElement('style');
+            styleElement.id = 'custom-severity-colors';
+            document.head.appendChild(styleElement);
+        }
+        
+        styleElement.textContent = `
+            .severity-critical {
+                color: ${colors.critical} !important;
+                border-left-color: ${colors.critical} !important;
+            }
+            .severity-critical .issue-severity {
+                color: ${colors.critical} !important;
+            }
+            .severity-high {
+                color: ${colors.high} !important;
+                border-left-color: ${colors.high} !important;
+            }
+            .severity-high .issue-severity {
+                color: ${colors.high} !important;
+            }
+            .severity-medium {
+                color: ${colors.medium} !important;
+                border-left-color: ${colors.medium} !important;
+            }
+            .severity-medium .issue-severity {
+                color: ${colors.medium} !important;
+            }
+            .severity-low {
+                color: ${colors.low} !important;
+                border-left-color: ${colors.low} !important;
+            }
+            .severity-low .issue-severity {
+                color: ${colors.low} !important;
+            }
+        `;
+    }
+
+// Listen for messages from the extension
+window.addEventListener('message', event => {
+    const message = event.data;
 
         if (message.type === "statusUpdate") {
             // Update commit status
             updateCommitStatus(message.status);
+            // Update image when status changes
+            updateGenzImage();
+        } else if (message.type === "lightModeChanged") {
+            // Apply light mode to main sidebar view
+            applyLightMode(message.lightMode);
+        } else if (message.type === "colorsChanged") {
+            // Apply custom colors to severity classes
+            applyColors(message.colors);
         } else if (message.type === "processedResult") {
             const issues = message.result;
 
@@ -77,14 +195,16 @@
                 return;
             }
 
-            // const important = issues.filter(i => ["critical", "high"].includes(i.severity));
-            // const warning   = issues.filter(i => i.severity === "medium");
-            // const safe      = issues.filter(i => i.severity === "low");
+            // Store current issues for image selection
+            currentIssues = issues;
             
             const critical = issues.filter(i => i.severity === "critical");
             const high     = issues.filter(i => i.severity === "high");
             const medium   = issues.filter(i => i.severity === "medium");
             const low      = issues.filter(i => i.severity === "low");
+            
+            // Update GenZ image after processing
+            updateGenzImage();
 
             //individual classes for each type of issue container
            

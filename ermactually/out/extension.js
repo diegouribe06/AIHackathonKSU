@@ -39,18 +39,26 @@ exports.deactivate = deactivate;
 // Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
 const MainSidebarViewProvider_1 = require("./MainSidebarViewProvider");
+const SettingsPanelProvider_1 = require("./SettingsPanelProvider");
 const PromptWrapper_1 = require("./PromptWrapper");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
     const agent = new PromptWrapper_1.Agent(context);
-    const mainSidebarViewProvider = new MainSidebarViewProvider_1.MainSidebarViewProvider(agent, context.extensionUri);
+    const mainSidebarViewProvider = new MainSidebarViewProvider_1.MainSidebarViewProvider(agent, context, context.extensionUri);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(MainSidebarViewProvider_1.MainSidebarViewProvider.viewType, mainSidebarViewProvider));
     //Character counting and paste monitoring
     let charSinceLastRun = 0;
     // Matches ONLY whitespace and newlines
     const onlyWhitespaceOrNewline = /^[\s\n\r]*$/;
     vscode.workspace.onDidChangeTextDocument((event) => {
+        // Check if auto-scan is enabled
+        const settings = context.workspaceState.get('ermactually.settings', {
+            autoScan: true
+        });
+        if (!settings.autoScan) {
+            return;
+        }
         const active = vscode.window.activeTextEditor;
         if (!active || event.document !== active.document)
             return;
@@ -99,9 +107,19 @@ function activate(context) {
     context.subscriptions.push(setApiKey);
     const openSettings = vscode.commands.registerCommand('ermactually.openSettings', () => {
         //changed:  MainSidebarViewProvider.createSettingsPanel(context, context.extensionUri);
-        //SettingsPanelProvider.createSettingsPanel(context, context.extensionUri);
+        SettingsPanelProvider_1.SettingsPanelProvider.createSettingsPanel(context, context.extensionUri);
     });
     context.subscriptions.push(openSettings);
+    // Command to update light mode across all webviews
+    const updateLightMode = vscode.commands.registerCommand('ermactually.updateLightMode', (lightMode) => {
+        mainSidebarViewProvider.updateLightMode(lightMode);
+    });
+    context.subscriptions.push(updateLightMode);
+    // Command to update colors across all webviews
+    const updateColors = vscode.commands.registerCommand('ermactually.updateColors', (settings) => {
+        mainSidebarViewProvider.updateColors(settings);
+    });
+    context.subscriptions.push(updateColors);
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "ermactually" is now active!');
