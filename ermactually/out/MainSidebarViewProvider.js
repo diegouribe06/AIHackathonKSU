@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MainSidebarViewProvider = void 0;
 const vscode = __importStar(require("vscode"));
+const DecorationManager_1 = require("./DecorationManager");
 /** Escape anything that would break a template literal or webview HTML */
 function sanitizeForWebview(str) {
     return str
@@ -47,10 +48,12 @@ class MainSidebarViewProvider {
     _extensionUri;
     static viewType = 'ermactually.mainSidebarView';
     _view;
+    decorationManager;
     constructor(agent, _context, _extensionUri) {
         this.agent = agent;
         this._context = _context;
         this._extensionUri = _extensionUri;
+        this.decorationManager = new DecorationManager_1.DecorationManager(_context);
     }
     resolveWebviewView(webviewView, _context, _token) {
         this._view = webviewView;
@@ -69,6 +72,8 @@ class MainSidebarViewProvider {
             if (message.type === "processCode") {
                 webviewView.webview.postMessage({ type: "statusUpdate", status: "⚡ Processing..." });
                 const result = await this.agent.processActiveFile();
+                // Update decorations
+                this.decorationManager.updateDecorations(result);
                 // Update status
                 webviewView.webview.postMessage({ type: "statusUpdate", status: "✓ Completed!" });
                 webviewView.webview.postMessage({ type: "processedResult", result });
@@ -170,6 +175,8 @@ class MainSidebarViewProvider {
         if (!this._view)
             return;
         const result = await this.agent.processActiveFile();
+        // Update decorations
+        this.decorationManager.updateDecorations(result);
         this._view.webview.postMessage({ type: "processedResult", result });
     }
     /** Load and apply light mode setting */
@@ -191,6 +198,8 @@ class MainSidebarViewProvider {
     }
     /** Update colors when command is called */
     async updateColors(settings) {
+        // Update decoration colors
+        this.decorationManager.updateColors();
         if (this._view) {
             this._view.webview.postMessage({
                 type: 'colorsChanged',
