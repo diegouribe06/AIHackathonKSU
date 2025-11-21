@@ -1,6 +1,6 @@
-# ErmActually
+# Hamster Helper
 
-ErmActually is a small VS Code extension that scans the active file for potential security vulnerabilities using an AI backend and displays categorized findings in a sidebar view.
+Hamster Helper is a small VS Code extension that scans the active file for potential security vulnerabilities using an AI backend and displays categorized findings in a sidebar view.
 
 **Key features**
 - Runs an AI-based analysis of the active editor and lists detected issues grouped by severity.
